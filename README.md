@@ -64,7 +64,7 @@ src/
 
 ## Mundo y presentación
 
-- **Tamaño del mundo**: 4200×3200 (lógica y física Arcade).
+- **Tamaño del mundo**: 6400×4800 (lógica y física Arcade).
 - **Suelo**: cuadrícula gris (placeholder hasta sprites).
 - **Rocas**: obstáculos azules estáticos; colisión con jugador, enemigos y proyectiles.
 - **Cámara**: sigue al jugador con suavizado; zoom según referencia 960×540; `resize` correcto al cambiar el viewport (`camera.ts`).

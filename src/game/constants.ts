@@ -1,8 +1,8 @@
 /** Mundo lógico y ajustes de gameplay (un solo sitio para tunear). */
 
 export const WORLD = {
-  W: 4200,
-  H: 3200,
+  W: 6400,
+  H: 4800,
 } as const;
 
 export const COLORS = {
@@ -50,7 +50,7 @@ export const ORB_TIERS = {
 
 export type OrbTier = keyof typeof ORB_TIERS;
 
-export const ROCK_COUNT = 55;
+export const ROCK_COUNT = 120;
 export const ROCK_SIZE = 52;
 export const ENEMY_SPEED_BASE = 95;
 export const BASE_SPAWN_SEC = 1.75;
@@ -61,7 +61,7 @@ export const BASE_ENEMY_CONTACT_DAMAGE = 13;
 export const CONTACT_DAMAGE_INTERVAL_MS = 620;
 export const INVULN_AFTER_HIT_MS = 520;
 export const MAX_ENEMIES_ALIVE = 160;
-export const WORLD_ORB_COUNT = 110;
+export const WORLD_ORB_COUNT = 240;
 export const WORLD_ORB_MIN_FROM_PLAYER = 240;
 export const WORLD_ORB_MIN_SPACING = 38;
 
