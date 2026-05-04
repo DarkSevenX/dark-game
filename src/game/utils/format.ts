@@ -1,4 +1,4 @@
-export function formatSurvivalTime(ms) {
+export function formatSurvivalTime(ms: number): string {
   const s = Math.floor(ms / 1000);
   const m = Math.floor(s / 60);
   const sec = s % 60;

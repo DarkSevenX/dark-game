@@ -1,13 +1,22 @@
-function shuffle(arr) {
+import type { GameScene } from '../gameSceneTypes';
+
+function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+    [a[i], a[j]] = [a[j]!, a[i]!];
   }
   return a;
 }
 
-export const UPGRADE_POOL = [
+export interface LevelUpPick {
+  id: string;
+  name: string;
+  desc: string;
+  apply: (scene: GameScene) => void;
+}
+
+export const UPGRADE_POOL: LevelUpPick[] = [
   {
     id: 'vitality',
     name: 'Vitalidad',
@@ -75,10 +84,18 @@ export const UPGRADE_POOL = [
       scene.stats.moveSpeed *= 1.07;
     },
   },
+  {
+    id: 'arcane_tank',
+    name: 'Reserva arcana',
+    desc: '+28 de maná máximo. Recuperas +12 de maná al instante.',
+    apply: (scene) => {
+      scene.stats.maxMana += 28;
+      scene.stats.mana = Math.min(scene.stats.maxMana, scene.stats.mana + 12);
+    },
+  },
 ];
 
-/** Opciones de ataque adicional (se mezclan con las mejoras de stats en el nivel up). */
-export const WEAPON_POOL = [
+export const WEAPON_POOL: LevelUpPick[] = [
   {
     id: 'weapon_lightning',
     name: 'Arco voltaico',
@@ -97,14 +114,41 @@ export const WEAPON_POOL = [
       scene.applyProjectileWeaponUpgrade();
     },
   },
+  {
+    id: 'weapon_pierce',
+    name: 'Carrete perforante',
+    desc:
+      'Lanza una saeta que atraviesa a varios enemigos en línea (no atraviesa rocas). Mejoras suman blancos atravesados y daño.',
+    apply: (scene) => {
+      scene.applyPierceWeaponUpgrade();
+    },
+  },
+  {
+    id: 'weapon_orbit',
+    name: 'Vértigos certeros',
+    desc:
+      'Hojas orbitales que cortan cada poco tiempo. Mejoras suben daño, radio o añaden una hoja (máx. 5).',
+    apply: (scene) => {
+      scene.applyOrbitWeaponUpgrade();
+    },
+  },
+  {
+    id: 'weapon_nova',
+    name: 'Pulsación abisal',
+    desc:
+      'Onda de choque cada pocos segundos: daña a todos los enemigos en un radio amplio. Mejoras bajan intervalo y suben daño y alcance.',
+    apply: (scene) => {
+      scene.applyNovaWeaponUpgrade();
+    },
+  },
 ];
 
-const LEVEL_UP_POOL = [...UPGRADE_POOL, ...WEAPON_POOL];
+const LEVEL_UP_POOL: LevelUpPick[] = [...UPGRADE_POOL, ...WEAPON_POOL];
 
-export function pickThreeUpgrades() {
+export function pickThreeUpgrades(): LevelUpPick[] {
   const full = shuffle([...LEVEL_UP_POOL]);
-  const out = [];
-  const seen = new Set();
+  const out: LevelUpPick[] = [];
+  const seen = new Set<string>();
   for (const item of full) {
     if (out.length >= 3) break;
     if (seen.has(item.id)) continue;
@@ -114,7 +158,7 @@ export function pickThreeUpgrades() {
   let guard = 0;
   while (out.length < 3 && guard < 50) {
     guard += 1;
-    const pick = LEVEL_UP_POOL[Math.floor(Math.random() * LEVEL_UP_POOL.length)];
+    const pick = LEVEL_UP_POOL[Math.floor(Math.random() * LEVEL_UP_POOL.length)]!;
     if (seen.has(pick.id)) continue;
     seen.add(pick.id);
     out.push(pick);

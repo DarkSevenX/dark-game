@@ -66,7 +66,9 @@ export const ENEMY_DEFS = {
     stroke: 0x3b0764,
     xpBonus: 8,
   },
-};
+} as const;
+
+export type EnemyId = keyof typeof ENEMY_DEFS;
 
 /** Segundos de partida → desbloqueo de tipos. */
 export const ENEMY_UNLOCK_SEC = {
@@ -74,6 +76,12 @@ export const ENEMY_UNLOCK_SEC = {
   brute: 90,
   swarm: 180,
   warden: 300,
-};
+} as const;
 
-export const ENEMY_LEGEND_ORDER = ['stalker', 'runner', 'brute', 'swarm', 'warden'];
+export const ENEMY_LEGEND_ORDER: readonly EnemyId[] = [
+  'stalker',
+  'runner',
+  'brute',
+  'swarm',
+  'warden',
+];

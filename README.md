@@ -16,11 +16,12 @@ npm run dev
 
 | Comando | Descripción |
 |--------|-------------|
-| `npm run dev` | Servidor Vite (por defecto [http://localhost:5173](http://localhost:5173), `open: true` en `vite.config.js`) |
+| `npm run dev` | Servidor Vite (por defecto [http://localhost:5173](http://localhost:5173), `open: true` en `vite.config.ts`) |
 | `npm run build` | Genera la build en `dist/` |
 | `npm run preview` | Sirve `dist/` para probar la build de producción |
+| `npm run typecheck` | Verificación estática con TypeScript (`tsc --noEmit`) |
 
-Punto de entrada HTML: `index.html` carga `/src/main.js`. El juego ocupa **pantalla completa** (`#game` al 100 % del viewport).
+Punto de entrada HTML: `index.html` carga `/src/main.ts`. El juego ocupa **pantalla completa** (`#game` al 100 % del viewport).
 
 ## Controles
 
@@ -34,19 +35,21 @@ Punto de entrada HTML: `index.html` carga `/src/main.js`. El juego ocupa **panta
 
 ```
 src/
-  main.js                    # Crea Phaser.Game, listeners de resize / visualViewport
+  main.ts                    # Crea Phaser.Game, listeners de resize / visualViewport
   scenes/
-    PlayScene.js             # Escena principal: mundo, física, HUD, combate, menús
+    PlayScene.ts             # Escena principal: mundo, física, HUD, combate, menús
   game/
-    constants.js             # WORLD, COLORS, balance, zoom, DEV_START_WEAPONS
-    gameConfig.js            # Configuración del juego y registro de escenas
-    enemySpawn.js           # getUnlockedEnemyKeys, pickEnemyTypeForSpawn
+    gameSceneTypes.ts        # Tipos compartidos (GameScene, armas, stats)
+    constants.ts             # WORLD, COLORS, balance, zoom, DEV_START_WEAPONS
+    gameConfig.ts            # Configuración del juego y registro de escenas
+    enemySpawn.ts            # getUnlockedEnemyKeys, pickEnemyTypeForSpawn
     data/
-      enemies.js             # ENEMY_DEFS, tiempos de desbloqueo, orden de leyenda
-      upgrades.js            # UPGRADE_POOL, WEAPON_POOL, pickThreeUpgrades
+      enemies.ts             # ENEMY_DEFS, tiempos de desbloqueo, orden de leyenda
+      upgrades.ts            # UPGRADE_POOL, WEAPON_POOL, pickThreeUpgrades
     utils/
-      format.js              # Tiempo m:ss
-      xp.js                  # xpForLevel(level)
+      format.ts              # Tiempo m:ss
+      xp.ts                  # xpForLevel(level)
+    play/                    # HUD, mundo, combate, armas, XP, modales, spawns…
 ```
 
 ## Mundo y presentación
@@ -91,7 +94,7 @@ Las armas se aplican con los mismos métodos que al elegir la carta: `applyLight
 ## XP y nivel
 
 - Orbes al matar enemigos (y orbes del mapa); aplica multiplicador por mejora.
-- XP para el siguiente nivel: `xpForLevel(level)` en `src/game/utils/xp.js`  
+- XP para el siguiente nivel: `xpForLevel(level)` en `src/game/utils/xp.ts`  
   `floor(32 + L×52 + L²×4.2 + 0.15×L³)` con `L = max(1, level)`.
 - Puede encadenarse más de una subida si sobra XP al cerrar el menú.
 
@@ -105,7 +108,7 @@ Las armas se aplican con los mismos métodos que al elegir la carta: `applyLight
 | Turba | Muy rápido, pequeño |
 | Celador | Tanque, mucho PV, violeta |
 
-**Desbloqueo por tiempo de partida** (segundos, ver `ENEMY_UNLOCK_SEC` en `enemies.js`):
+**Desbloqueo por tiempo de partida** (segundos, ver `ENEMY_UNLOCK_SEC` en `enemies.ts`):
 
 | Tras (s) | Aparece en el pool de spawns |
 |----------|------------------------------|
@@ -133,17 +136,16 @@ La leyenda del HUD atenúa los tipos aún no desbloqueados.
 
 ## Desarrollo: probar armas al iniciar
 
-En `src/game/constants.js`, **`DEV_START_WEAPONS`** desbloquea armas al crear la escena (misma lógica que las cartas), sin pasar por el menú:
+En `src/game/constants.ts`, **`DEV_START_WEAPONS`** desbloquea armas al crear la escena (misma lógica que las cartas), sin pasar por el menú:
 
-```javascript
-export const DEV_START_WEAPONS = [];                    // partida normal
-export const DEV_START_WEAPONS = ['lightning'];       // solo Arco voltaico
-export const DEV_START_WEAPONS = ['projectile'];      // solo Dardos
-export const DEV_START_WEAPONS = ['lightning', 'projectile']; // ambas
+```typescript
+export const DEV_START_WEAPONS: DevWeaponId[] = [];                    // partida normal
+export const DEV_START_WEAPONS = ['lightning'];
+export const DEV_START_WEAPONS = ['projectile'];
+export const DEV_START_WEAPONS = ['lightning', 'projectile', 'pierce', 'orbit', 'nova'];
 ```
 
-Valores permitidos: `'lightning'` y `'projectile'`.  
-**Recomendación:** dejar `[]` en commits y builds finales; usar el array solo en local para tests.
+Valores permitidos: `'lightning'`, `'projectile'`, `'pierce'`, `'orbit'`, `'nova'`.
 
 ## Stack técnico
 
@@ -151,4 +153,5 @@ Valores permitidos: `'lightning'` y `'projectile'`.
 |------------|-----|
 | [Phaser 3.80](https://phaser.io/) | Motor 2D, física Arcade, escenas, cámara |
 | [Vite 5](https://vitejs.dev/) | Dev server y empaquetado ES modules |
+| [TypeScript 5.7](https://www.typescriptlang.org/) | Tipado estático; comprobación con `npm run typecheck` |
 

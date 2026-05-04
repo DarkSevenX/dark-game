@@ -3,7 +3,7 @@
 export const WORLD = {
   W: 4200,
   H: 3200,
-};
+} as const;
 
 export const COLORS = {
   bg: 0xb0b4bc,
@@ -18,7 +18,44 @@ export const COLORS = {
   hpBarBg: 0x475569,
   xpBarFill: 0xa855f7,
   xpBarBg: 0x475569,
-};
+  manaBarFill: 0x38bdf8,
+  manaBarBg: 0x475569,
+} as const;
+
+/** XP y aspecto de orbes por categoría (mundo y loot). */
+export const ORB_TIERS = {
+  dim: {
+    baseMin: 1,
+    baseMax: 3,
+    radius: 5,
+    color: 0x94a3b8,
+    strokeWorld: 0xd1d5db,
+    strokeDrop: 0x9ca3af,
+  },
+  normal: {
+    baseMin: 4,
+    baseMax: 8,
+    radius: 7,
+    color: 0x7b68ee,
+    strokeWorld: 0xc4b5fd,
+    strokeDrop: 0xffffff,
+  },
+  rich: {
+    baseMin: 10,
+    baseMax: 18,
+    radius: 10,
+    color: 0xf59e0b,
+    strokeWorld: 0xfcd34d,
+    strokeDrop: 0xfef08a,
+  },
+} as const;
+
+export type OrbTier = keyof typeof ORB_TIERS;
+
+/** Fracción del maná máximo que recuperas al rechazar todas las mejoras del nivel. */
+export const LEVEL_UP_MANA_FILL_RATIO = 0.28;
+
+export const BASE_MAX_MANA = 100;
 
 export const ROCK_COUNT = 55;
 export const ROCK_SIZE = 52;
@@ -36,16 +73,11 @@ export const WORLD_ORB_MIN_FROM_PLAYER = 240;
 export const WORLD_ORB_MIN_SPACING = 38;
 
 /** Encuadre de referencia para zoom de cámara. */
-export const VIEW_REF = { W: 960, H: 540 };
+export const VIEW_REF = { W: 960, H: 540 } as const;
+
+export type DevWeaponId = 'lightning' | 'projectile' | 'pierce' | 'orbit' | 'nova';
 
 /**
  * Pruebas rápidas: armas extra al iniciar la escena (vacío en juego normal).
- * Edita el array mientras desarrollas; vuelve a `[]` antes de un release.
- *
- * Valores: `'lightning'` (Arco voltaico), `'projectile'` (Dardos lúgubres).
- *
- * @example
- * export const DEV_START_WEAPONS = ['projectile'];
- * export const DEV_START_WEAPONS = ['lightning', 'projectile'];
  */
-export const DEV_START_WEAPONS = /** @type {('lightning' | 'projectile')[]} */ ([]);
+export const DEV_START_WEAPONS: DevWeaponId[] = [];

@@ -1,8 +1,8 @@
-import { ENEMY_UNLOCK_SEC } from './data/enemies.js';
+import { ENEMY_UNLOCK_SEC, type EnemyId } from './data/enemies';
 
-export function getUnlockedEnemyKeys(elapsedSec) {
+export function getUnlockedEnemyKeys(elapsedSec: number): EnemyId[] {
   const s = Math.floor(Math.max(0, elapsedSec));
-  const keys = ['stalker'];
+  const keys: EnemyId[] = ['stalker'];
   if (s >= ENEMY_UNLOCK_SEC.runner) keys.push('runner');
   if (s >= ENEMY_UNLOCK_SEC.brute) keys.push('brute');
   if (s >= ENEMY_UNLOCK_SEC.swarm) keys.push('swarm');
@@ -10,10 +10,10 @@ export function getUnlockedEnemyKeys(elapsedSec) {
   return keys;
 }
 
-export function pickEnemyTypeForSpawn(elapsedSec) {
+export function pickEnemyTypeForSpawn(elapsedSec: number): EnemyId {
   const pool = getUnlockedEnemyKeys(elapsedSec);
   const elapsedMin = elapsedSec / 60;
-  const baseW = {
+  const baseW: Record<EnemyId, number> = {
     stalker: 36,
     runner: 24,
     brute: 14,
