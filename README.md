@@ -1,6 +1,6 @@
 # DarkGame
 
-Prototipo de supervivencia en el navegador, inspirado en *Vampire Survivors*: mapa amplio con obstáculos, movimiento con teclado, **aura de daño automática**, armas adicionales opcionales (rayos y proyectiles), XP, subidas de nivel con cartas de mejora **y** armas, enemigos con varios tipos y dificultad creciente.
+Prototipo de supervivencia en el navegador, inspirado en *Vampire Survivors*: mapa amplio con obstáculos, movimiento con teclado, **aura de daño automática**, varias **armas opcionales** (rayo, proyectiles, perforación, orbitales, nova), **orbes de XP** con distinta rareza, **maná** y opción de **rechazar las cartas de nivel** a cambio de recuperar maná, enemigos tipados con dificultad creciente y proyecto en **TypeScript**.
 
 ## Requisitos
 
@@ -35,48 +35,70 @@ Punto de entrada HTML: `index.html` carga `/src/main.ts`. El juego ocupa **panta
 
 ```
 src/
-  main.ts                    # Crea Phaser.Game, listeners de resize / visualViewport
+  main.ts                    # Phaser.Game, resize / visualViewport
+  vite-env.d.ts              # Tipos Vite
   scenes/
-    PlayScene.ts             # Escena principal: mundo, física, HUD, combate, menús
+    PlayScene.ts             # Orquestación: create/update, input, cámara
   game/
-    gameSceneTypes.ts        # Tipos compartidos (GameScene, armas, stats)
-    constants.ts             # WORLD, COLORS, balance, zoom, DEV_START_WEAPONS
-    gameConfig.ts            # Configuración del juego y registro de escenas
+    gameSceneTypes.ts        # GameScene, stats, estados de armas, ArcadeRectBody
+    constants.ts             # WORLD, COLORS, ORB_TIERS, balance, zoom, maná al rechazar
+    gameConfig.ts            # Config Phaser y registro de escenas
     enemySpawn.ts            # getUnlockedEnemyKeys, pickEnemyTypeForSpawn
     data/
-      enemies.ts             # ENEMY_DEFS, tiempos de desbloqueo, orden de leyenda
+      enemies.ts             # ENEMY_DEFS, ENEMY_UNLOCK_SEC, leyenda
       upgrades.ts            # UPGRADE_POOL, WEAPON_POOL, pickThreeUpgrades
     utils/
       format.ts              # Tiempo m:ss
       xp.ts                  # xpForLevel(level)
-    play/                    # HUD, mundo, combate, armas, XP, modales, spawns…
+    play/
+      camera.ts              # Zoom y límites al redimensionar
+      hud.ts                 # Barras, leyenda de enemigos
+      world.ts               # Fondo, cuadrícula, rocas, orbes iniciales
+      spawn.ts               # Oleadas y spawnEnemy
+      combat.ts              # Aura, contacto, knockback del jugador
+      weapons.ts             # Rayo, proyectiles, perforación, orbitales, nova
+      xp.ts                  # Orbes, recolección, loot al matar
+      levelFlow.ts           # consumeLevel (subir sin abrir UI)
+      mana.ts                # Maná al rechazar mejoras de nivel
+      modals.ts              # Menú de nivel (cartas + rechazo), game over, pausa
 ```
 
 ## Mundo y presentación
 
 - **Tamaño del mundo**: 4200×3200 (lógica y física Arcade).
 - **Suelo**: cuadrícula gris (placeholder hasta sprites).
-- **Rocas**: obstáculos azules estáticos; colisión con jugador y enemigos.
-- **Cámara**: sigue al jugador con suavizado; zoom derivado de una referencia 960×540 para mantener encuadre al redimensionar.
-- **Orbes iniciales**: muchos XP repartidos al empezar (sin solaparse con el spawn ni con rocas).
+- **Rocas**: obstáculos azules estáticos; colisión con jugador, enemigos y proyectiles.
+- **Cámara**: sigue al jugador con suavizado; zoom según referencia 960×540; `resize` correcto al cambiar el viewport (`camera.ts`).
+- **Orbes iniciales**: repartidos por el mapa; cada uno tiene una **categoría** (`dim` / `normal` / `rich`) definida en `ORB_TIERS` (`constants.ts`): distinto tamaño, color y rango de XP.
+
+## Orbes y XP
+
+- **Mundo y bajas**: la XP del orbe depende de la categoría (poca / media / mucha) más un extra por nivel y el `xpBonus` del enemigo en drops.
+- **Multiplicador**: la mejora *Hambre de conocimiento* afecta a la XP ganada por orbe.
+- **Siguiente nivel**: `xpForLevel(level)` en `src/game/utils/xp.ts`  
+  `floor(32 + L×52 + L²×4.2 + 0.15×L³)` con `L = max(1, level)`.
+- Puede encadenarse más de una subida si sobra XP al cerrar el menú de nivel.
 
 ## Combate y supervivencia
 
-- **Aura**: daño automático en área alrededor del jugador; cooldown configurable (`attackCooldownMs`).
-- **PV / game over**: barra en HUD; daño por contacto con enemigos (intervalos + i-frames + knockback hacia atrás).
-- **Bajas**: contador en HUD y resumen en game over.
-- **Knockback**: enemigos al recibir aura (y al recibir rayo); jugador al ser golpeado.
+- **Aura**: daño automático en área; cooldown (`attackCooldownMs`).
+- **PV / game over**: barra en HUD; daño por contacto (intervalos, i-frames, knockback al jugador).
+- **Bajas**: contador y resumen en game over.
+- **Knockback**: enemigos al recibir aura, rayo, orbitales o nova; jugador al ser golpeado.
 
 ## Armas adicionales (menú de nivel)
 
-En cada subida de nivel aparecen **3 cartas** elegidas entre **mejoras de estadísticas** y **armas**. No pueden repetirse **dos cartas con el mismo `id` en la misma tirada**.
+En cada subida aparecen **3 cartas** (stats o armas), sin repetir `id` en la misma tirada. Opción **rechazar las tres**: recuperas un porcentaje del **maná máximo** actual (véase `LEVEL_UP_MANA_FILL_RATIO` en `constants.ts`; por defecto ~28 %).
 
 | ID menú | Nombre | Comportamiento |
 |--------|--------|----------------|
-| `weapon_lightning` | **Arco voltaico** | Rayo instantáneo al enemigo **vivo más cercano** en rango, de uno en uno. Cadencia propia. Repetir la carta mejora daño, cadencia y alcance. |
-| `weapon_projectile` | **Dardos lúgubres** | Proyectil **dinámico** (rectángulo orientado) hacia el enemigo más cercano en rango; vuela en línea recta hasta impactar enemigo, **roca** o distancia máxima / salida del mapa. Cadencia independiente del rayo y del aura. Repetir mejora daño, velocidad, cadencia y alcances. |
+| `weapon_lightning` | **Arco voltaico** | Rayo al enemigo vivo más cercano en rango. Mejoras: daño, cadencia, alcance. |
+| `weapon_projectile` | **Dardos lúgubres** | Proyectil hacia el más cercano; choca con enemigos, rocas o distancia máxima. |
+| `weapon_pierce` | **Carrete perforante** | Saeta que **atraviesa** varios enemigos (no atraviesa rocas). |
+| `weapon_orbit` | **Vértigos certeros** | Hojas que orbitan al jugador y hacen daño periódico. |
+| `weapon_nova` | **Pulsación abisal** | Onda de daño en área grande cada intervalo. |
 
-Las armas se aplican con los mismos métodos que al elegir la carta: `applyLightningWeaponUpgrade()` y `applyProjectileWeaponUpgrade()` en `PlayScene`.
+En código se enlazan con `applyLightningWeaponUpgrade()`, `applyProjectileWeaponUpgrade()`, etc., en `PlayScene`.
 
 ## Mejoras de estadísticas (pool)
 
@@ -90,13 +112,13 @@ Las armas se aplican con los mismos métodos que al elegir la carta: `applyLight
 | Piel de piedra | −14 % daño recibido (acumulable) |
 | Hambre de conocimiento | +40 % XP por orbe |
 | Segundo aire | +22 PV máx.; +7 % vel.; cura 8 PV |
+| Reserva arcana | +28 maná máx.; +12 maná al instante |
 
-## XP y nivel
+## Maná
 
-- Orbes al matar enemigos (y orbes del mapa); aplica multiplicador por mejora.
-- XP para el siguiente nivel: `xpForLevel(level)` en `src/game/utils/xp.ts`  
-  `floor(32 + L×52 + L²×4.2 + 0.15×L³)` con `L = max(1, level)`.
-- Puede encadenarse más de una subida si sobra XP al cerrar el menú.
+- **HUD**: tercera barra (PV, XP, maná).
+- **Rechazo en nivel**: al pulsar rechazar las tres cartas ganas fracción de tu maná máximo (no consume carta).
+- El maná queda preparado para mecánicas futuras (por ahora se acumula con rechazo y mejoras).
 
 ## Enemigos y progresión temporal
 
@@ -108,44 +130,46 @@ Las armas se aplican con los mismos métodos que al elegir la carta: `applyLight
 | Turba | Muy rápido, pequeño |
 | Celador | Tanque, mucho PV, violeta |
 
-**Desbloqueo por tiempo de partida** (segundos, ver `ENEMY_UNLOCK_SEC` en `enemies.ts`):
+**Desbloqueo por tiempo** (`ENEMY_UNLOCK_SEC` en `enemies.ts`):
 
-| Tras (s) | Aparece en el pool de spawns |
-|----------|------------------------------|
+| Tras (s) | En pool de spawns |
+|----------|-------------------|
 | 0 | Acechador |
 | 45 | + Corredor |
 | 90 | + Bruto |
 | 180 | + Turba |
 | 300 | + Celador |
 
-La leyenda del HUD atenúa los tipos aún no desbloqueados.
+La leyenda del HUD atenúa tipos aún no desbloqueados.
 
 ## Dificultad en el tiempo
 
-- Intervalo de spawns que se acorta con los minutos y **ráfagas** de varios enemigos.
-- Velocidad global de enemigos con multiplicador creciente (con tope).
-- Tope de enemigos vivos (`MAX_ENEMIES_ALIVE`) para rendimiento.
+- Spawns más frecuentes con los minutos y **ráfagas** de enemigos.
+- Multiplicador de velocidad de enemigos (con tope).
+- Tope de enemigos vivos (`MAX_ENEMIES_ALIVE`).
 
 ## Interfaz
 
-- **Cronómetro** grande centrado arriba (m:ss).
-- Barras de **PV** y **XP** con valores numéricos.
-- **Nivel** y **bajas** (esquinas).
-- Menú de **pausa**: congela física y tiempo de Phaser (el cronómetro no avanza).
-- Menú de **nivel**: pausa física y spawns hasta elegir carta.
+- **Cronómetro** centrado arriba (m:ss).
+- **PV**, **XP** y **maná** con barras y texto.
+- **Nivel** y **bajas** en esquinas.
+- **Pausa** (**ESC**): congela física y tiempo de Phaser.
+- **Subida de tres cartas** + botón de **rechazar** (maná).
 
 ## Desarrollo: probar armas al iniciar
 
-En `src/game/constants.ts`, **`DEV_START_WEAPONS`** desbloquea armas al crear la escena (misma lógica que las cartas), sin pasar por el menú:
+En `src/game/constants.ts`, **`DEV_START_WEAPONS`** aplica armas al crear la escena (misma lógica que las cartas):
 
 ```typescript
-export const DEV_START_WEAPONS: DevWeaponId[] = [];                    // partida normal
-export const DEV_START_WEAPONS = ['lightning'];
-export const DEV_START_WEAPONS = ['projectile'];
-export const DEV_START_WEAPONS = ['lightning', 'projectile', 'pierce', 'orbit', 'nova'];
+export const DEV_START_WEAPONS: DevWeaponId[] = []; // partida normal
+// export const DEV_START_WEAPONS = ['lightning', 'projectile', 'pierce', 'orbit', 'nova'];
 ```
 
-Valores permitidos: `'lightning'`, `'projectile'`, `'pierce'`, `'orbit'`, `'nova'`.
+Valores posibles: `lightning`, `projectile`, `pierce`, `orbit`, `nova`. Dejar `[]` en builds finales.
+
+## Licencia
+
+El proyecto se distribuye bajo **Apache License 2.0** (archivo `LICENSE` en la raíz). El campo `license` en `package.json` es `Apache-2.0`.
 
 ## Stack técnico
 
@@ -153,5 +177,4 @@ Valores permitidos: `'lightning'`, `'projectile'`, `'pierce'`, `'orbit'`, `'nova
 |------------|-----|
 | [Phaser 3.80](https://phaser.io/) | Motor 2D, física Arcade, escenas, cámara |
 | [Vite 5](https://vitejs.dev/) | Dev server y empaquetado ES modules |
-| [TypeScript 5.7](https://www.typescriptlang.org/) | Tipado estático; comprobación con `npm run typecheck` |
-
+| [TypeScript 5.7](https://www.typescriptlang.org/) | Tipado estático; `npm run typecheck` |
