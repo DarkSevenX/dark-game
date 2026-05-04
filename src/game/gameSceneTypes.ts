@@ -11,8 +11,6 @@ export interface PlayStats {
   damageTakenMult: number;
   xpGainMult: number;
   auraDamage: number;
-  mana: number;
-  maxMana: number;
 }
 
 export interface LightningWeaponState {
@@ -118,9 +116,6 @@ export interface GameScene extends Phaser.Scene {
   hudXpBg: Phaser.GameObjects.Rectangle;
   hudXpFill: Phaser.GameObjects.Rectangle;
   hudXpLabel: Phaser.GameObjects.Text;
-  hudManaBg: Phaser.GameObjects.Rectangle;
-  hudManaFill: Phaser.GameObjects.Rectangle;
-  hudManaLabel: Phaser.GameObjects.Text;
   hudLegendEntries: HudLegendRow[];
   syncPlayerMaxVelocity(): void;
   scheduleNextSpawn(): void;

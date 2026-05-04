@@ -5,7 +5,6 @@ import {
   BASE_ATTACK_RANGE,
   BASE_ATTACK_COOLDOWN_MS,
   BASE_PICKUP_RADIUS,
-  BASE_MAX_MANA,
   ENEMY_SPEED_BASE,
 } from '../game/constants';
 import { xpForLevel } from '../game/utils/xp';
@@ -85,9 +84,6 @@ export class PlayScene extends Phaser.Scene implements GameScene {
   hudXpBg!: Phaser.GameObjects.Rectangle;
   hudXpFill!: Phaser.GameObjects.Rectangle;
   hudXpLabel!: Phaser.GameObjects.Text;
-  hudManaBg!: Phaser.GameObjects.Rectangle;
-  hudManaFill!: Phaser.GameObjects.Rectangle;
-  hudManaLabel!: Phaser.GameObjects.Text;
   hudLegendEntries!: GameScene['hudLegendEntries'];
   constructor() {
     super({ key: 'PlayScene' });
@@ -125,8 +121,6 @@ export class PlayScene extends Phaser.Scene implements GameScene {
       damageTakenMult: 1,
       xpGainMult: 1,
       auraDamage: 11,
-      mana: BASE_MAX_MANA,
-      maxMana: BASE_MAX_MANA,
     };
 
     this.level = 1;

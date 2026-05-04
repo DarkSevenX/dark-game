@@ -84,15 +84,6 @@ export const UPGRADE_POOL: LevelUpPick[] = [
       scene.stats.moveSpeed *= 1.07;
     },
   },
-  {
-    id: 'arcane_tank',
-    name: 'Reserva arcana',
-    desc: '+28 de maná máximo. Recuperas +12 de maná al instante.',
-    apply: (scene) => {
-      scene.stats.maxMana += 28;
-      scene.stats.mana = Math.min(scene.stats.maxMana, scene.stats.mana + 12);
-    },
-  },
 ];
 
 export const WEAPON_POOL: LevelUpPick[] = [

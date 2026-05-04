@@ -89,35 +89,11 @@ export function createPlayHud(scene: GameScene): void {
     .setScrollFactor(0)
     .setDepth(depth);
 
-  const barY2 = 96;
-  scene.hudManaBg = scene.add
-    .rectangle(16 + scene.HUD_BAR_W / 2, barY2, scene.HUD_BAR_W, scene.HUD_BAR_H, COLORS.manaBarBg, 1)
-    .setStrokeStyle(1, 0x334155)
-    .setScrollFactor(0)
-    .setDepth(depth);
-
-  scene.hudManaFill = scene.add
-    .rectangle(16, barY2, scene.HUD_BAR_W, scene.HUD_BAR_H, COLORS.manaBarFill, 1)
-    .setOrigin(0, 0.5)
-    .setScrollFactor(0)
-    .setDepth(depth + 1);
-
-  scene.hudManaLabel = scene.add
-    .text(16 + scene.HUD_BAR_W + 8, barY2, '', {
-      fontFamily: font,
-      fontSize: '12px',
-      color: COLORS.hudText,
-      fontStyle: '500',
-    })
-    .setOrigin(0, 0.5)
-    .setScrollFactor(0)
-    .setDepth(depth);
-
   createEnemyLegend(scene, font, depth);
 }
 
 function createEnemyLegend(scene: GameScene, font: string, depth: number): void {
-  let y = 120;
+  let y = 98;
   scene.hudLegendEntries = [];
   for (const key of ENEMY_LEGEND_ORDER) {
     const d = ENEMY_DEFS[key];
@@ -172,11 +148,4 @@ export function updatePlayHud(scene: GameScene): void {
   const xpR = scene.xpToNext > 0 ? Phaser.Math.Clamp(scene.xp / scene.xpToNext, 0, 1) : 0;
   scene.hudXpFill.setSize(scene.HUD_BAR_W * xpR, scene.HUD_BAR_H);
   scene.hudXpLabel.setText(`XP  ${Math.floor(scene.xp)} / ${scene.xpToNext}`);
-
-  const maxM = scene.stats.maxMana > 0 ? scene.stats.maxMana : 1;
-  const manaR = Phaser.Math.Clamp(scene.stats.mana / maxM, 0, 1);
-  scene.hudManaFill.setSize(scene.HUD_BAR_W * manaR, scene.HUD_BAR_H);
-  scene.hudManaLabel.setText(
-    `Maná  ${Math.floor(scene.stats.mana)} / ${Math.floor(scene.stats.maxMana)}`,
-  );
 }

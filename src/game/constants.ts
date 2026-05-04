@@ -18,8 +18,6 @@ export const COLORS = {
   hpBarBg: 0x475569,
   xpBarFill: 0xa855f7,
   xpBarBg: 0x475569,
-  manaBarFill: 0x38bdf8,
-  manaBarBg: 0x475569,
 } as const;
 
 /** XP y aspecto de orbes por categoría (mundo y loot). */
@@ -52,18 +50,13 @@ export const ORB_TIERS = {
 
 export type OrbTier = keyof typeof ORB_TIERS;
 
-/** Fracción del maná máximo que recuperas al rechazar todas las mejoras del nivel. */
-export const LEVEL_UP_MANA_FILL_RATIO = 0.28;
-
-export const BASE_MAX_MANA = 100;
-
 export const ROCK_COUNT = 55;
 export const ROCK_SIZE = 52;
 export const ENEMY_SPEED_BASE = 95;
 export const BASE_SPAWN_SEC = 1.75;
 export const BASE_ATTACK_RANGE = 110;
 export const BASE_ATTACK_COOLDOWN_MS = 520;
-export const BASE_PICKUP_RADIUS = 76;
+export const BASE_PICKUP_RADIUS = 52;
 export const BASE_ENEMY_CONTACT_DAMAGE = 13;
 export const CONTACT_DAMAGE_INTERVAL_MS = 620;
 export const INVULN_AFTER_HIT_MS = 520;

@@ -1,6 +1,6 @@
 # DarkGame
 
-Prototipo de supervivencia en el navegador, inspirado en *Vampire Survivors*: mapa amplio con obstáculos, movimiento con teclado, **aura de daño automática**, varias **armas opcionales** (rayo, proyectiles, perforación, orbitales, nova), **orbes de XP** con distinta rareza, **maná** y opción de **rechazar las cartas de nivel** a cambio de recuperar maná, enemigos tipados con dificultad creciente y proyecto en **TypeScript**.
+Prototipo de supervivencia en el navegador, inspirado en *Vampire Survivors*: mapa amplio con obstáculos, movimiento con teclado, **aura de daño automática**, varias **armas opcionales** (rayo, proyectiles, perforación, orbitales, nova), **orbes de XP** con distinta rareza, enemigos tipados con dificultad creciente y proyecto en **TypeScript**.
 
 ## Requisitos
 
@@ -41,7 +41,7 @@ src/
     PlayScene.ts             # Orquestación: create/update, input, cámara
   game/
     gameSceneTypes.ts        # GameScene, stats, estados de armas, ArcadeRectBody
-    constants.ts             # WORLD, COLORS, ORB_TIERS, balance, zoom, maná al rechazar
+    constants.ts             # WORLD, COLORS, ORB_TIERS, balance, zoom
     gameConfig.ts            # Config Phaser y registro de escenas
     enemySpawn.ts            # getUnlockedEnemyKeys, pickEnemyTypeForSpawn
     data/
@@ -59,8 +59,7 @@ src/
       weapons.ts             # Rayo, proyectiles, perforación, orbitales, nova
       xp.ts                  # Orbes, recolección, loot al matar
       levelFlow.ts           # consumeLevel (subir sin abrir UI)
-      mana.ts                # Maná al rechazar mejoras de nivel
-      modals.ts              # Menú de nivel (cartas + rechazo), game over, pausa
+      modals.ts              # Menú de nivel, game over, pausa
 ```
 
 ## Mundo y presentación
@@ -74,6 +73,7 @@ src/
 ## Orbes y XP
 
 - **Mundo y bajas**: la XP del orbe depende de la categoría (poca / media / mucha) más un extra por nivel y el `xpBonus` del enemigo en drops.
+- **Recogida**: el jugador atrae orbes dentro de un radio (`BASE_PICKUP_RADIUS` en `constants.ts`; la mejora *Imán etéreo* aumenta ese radio).
 - **Multiplicador**: la mejora *Hambre de conocimiento* afecta a la XP ganada por orbe.
 - **Siguiente nivel**: `xpForLevel(level)` en `src/game/utils/xp.ts`  
   `floor(32 + L×52 + L²×4.2 + 0.15×L³)` con `L = max(1, level)`.
@@ -88,7 +88,7 @@ src/
 
 ## Armas adicionales (menú de nivel)
 
-En cada subida aparecen **3 cartas** (stats o armas), sin repetir `id` en la misma tirada. Opción **rechazar las tres**: recuperas un porcentaje del **maná máximo** actual (véase `LEVEL_UP_MANA_FILL_RATIO` en `constants.ts`; por defecto ~28 %).
+En cada subida aparecen **3 cartas** (stats o armas), sin repetir `id` en la misma tirada.
 
 | ID menú | Nombre | Comportamiento |
 |--------|--------|----------------|
@@ -112,13 +112,6 @@ En código se enlazan con `applyLightningWeaponUpgrade()`, `applyProjectileWeapo
 | Piel de piedra | −14 % daño recibido (acumulable) |
 | Hambre de conocimiento | +40 % XP por orbe |
 | Segundo aire | +22 PV máx.; +7 % vel.; cura 8 PV |
-| Reserva arcana | +28 maná máx.; +12 maná al instante |
-
-## Maná
-
-- **HUD**: tercera barra (PV, XP, maná).
-- **Rechazo en nivel**: al pulsar rechazar las tres cartas ganas fracción de tu maná máximo (no consume carta).
-- El maná queda preparado para mecánicas futuras (por ahora se acumula con rechazo y mejoras).
 
 ## Enemigos y progresión temporal
 
@@ -151,10 +144,10 @@ La leyenda del HUD atenúa tipos aún no desbloqueados.
 ## Interfaz
 
 - **Cronómetro** centrado arriba (m:ss).
-- **PV**, **XP** y **maná** con barras y texto.
+- **PV** y **XP** con barras y texto.
 - **Nivel** y **bajas** en esquinas.
 - **Pausa** (**ESC**): congela física y tiempo de Phaser.
-- **Subida de tres cartas** + botón de **rechazar** (maná).
+- **Subida de nivel**: tres cartas a elegir.
 
 ## Desarrollo: probar armas al iniciar
 
