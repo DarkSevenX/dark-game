@@ -254,7 +254,7 @@ export class PlayScene extends Phaser.Scene implements GameScene {
     applyNovaToScene(this);
   }
 
-  update(time: number): void {
+  update(time: number, _delta: number): void {
     updatePlayHud(this);
 
     if (this.gameOver) {
