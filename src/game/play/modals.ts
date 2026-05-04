@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { COLORS } from '../constants';
 import { pickThreeUpgrades } from '../data/upgrades';
 import { formatSurvivalTime } from '../utils/format';
+import { getCameraViewLayout } from './camera';
 import { consumeLevel } from './levelFlow';
 import type { GameScene } from '../gameSceneTypes';
 
@@ -16,22 +17,24 @@ export function openLevelUpMenu(scene: GameScene): void {
 
   const w = scene.scale.width;
   const h = scene.scale.height;
-  const root = scene.add.container(0, 0).setScrollFactor(0).setDepth(5000);
+  const L = getCameraViewLayout(scene);
+  const zx = L.zoomX;
+  const zy = L.zoomY;
+  const root = scene.add.container(L.worldViewX, L.worldViewY).setDepth(5000);
 
-  const dim = scene.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.72).setScrollFactor(0);
+  const dim = scene.add.rectangle(w / (2 * zx), h / (2 * zy), w / zx, h / zy, 0x000000, 0.72);
   dim.setInteractive();
   root.add(dim);
 
   const title = scene.add
-    .text(w / 2, h * 0.16, '¡Subiste de nivel!\nElige una mejora', {
+    .text(w / (2 * zx), (h * 0.16) / zy, '¡Subiste de nivel!\nElige una mejora', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '26px',
       color: '#f8fafc',
       align: 'center',
       fontStyle: '700',
     })
-    .setOrigin(0.5)
-    .setScrollFactor(0);
+    .setOrigin(0.5);
   root.add(title);
 
   const choices = pickThreeUpgrades();
@@ -43,37 +46,34 @@ export function openLevelUpMenu(scene: GameScene): void {
   for (let i = 0; i < 3; i++) {
     const def = choices[i];
     if (!def) break;
-    const cx = startX + i * (cardW + gap);
-    const cy = h * 0.52;
+    const cx = (startX + i * (cardW + gap)) / zx;
+    const cy = (h * 0.52) / zy;
 
     const card = scene.add
-      .rectangle(cx, cy, cardW, 150, COLORS.panelBg, 0.96)
+      .rectangle(cx, cy, cardW / zx, 150 / zy, COLORS.panelBg, 0.96)
       .setStrokeStyle(2, 0x64748b)
-      .setScrollFactor(0)
       .setInteractive({ useHandCursor: true });
 
     const nameTxt = scene.add
-      .text(cx, cy - 48, def.name, {
+      .text(cx, cy - 48 / zy, def.name, {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '17px',
         color: '#38bdf8',
         fontStyle: '700',
         align: 'center',
-        wordWrap: { width: cardW - 20 },
+        wordWrap: { width: (cardW - 20) / zx },
       })
-      .setOrigin(0.5)
-      .setScrollFactor(0);
+      .setOrigin(0.5);
 
     const descTxt = scene.add
-      .text(cx, cy + 12, def.desc, {
+      .text(cx, cy + 12 / zy, def.desc, {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '14px',
         color: '#e2e8f0',
         align: 'center',
-        wordWrap: { width: cardW - 16 },
+        wordWrap: { width: (cardW - 16) / zx },
       })
-      .setOrigin(0.5)
-      .setScrollFactor(0);
+      .setOrigin(0.5);
 
     card.on('pointerover', () => card.setStrokeStyle(2, 0x38bdf8));
     card.on('pointerout', () => card.setStrokeStyle(2, 0x64748b));
@@ -107,20 +107,22 @@ export function togglePause(scene: GameScene): void {
     scene.physics.pause();
     const w = scene.scale.width;
     const h = scene.scale.height;
-    const root = scene.add.container(0, 0).setScrollFactor(0).setDepth(4500);
-    const dim = scene.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.55).setScrollFactor(0);
+    const L = getCameraViewLayout(scene);
+    const zx = L.zoomX;
+    const zy = L.zoomY;
+    const root = scene.add.container(L.worldViewX, L.worldViewY).setDepth(4500);
+    const dim = scene.add.rectangle(w / (2 * zx), h / (2 * zy), w / zx, h / zy, 0x000000, 0.55);
     dim.setInteractive();
     root.add(dim);
     const txt = scene.add
-      .text(w / 2, h / 2, 'Pausa\n\nPulsa ESC o haz clic para continuar', {
+      .text(w / (2 * zx), h / (2 * zy), 'Pausa\n\nPulsa ESC o haz clic para continuar', {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '22px',
         color: '#f8fafc',
         align: 'center',
         fontStyle: '600',
       })
-      .setOrigin(0.5)
-      .setScrollFactor(0);
+      .setOrigin(0.5);
     root.add(txt);
     dim.on('pointerdown', () => togglePause(scene));
     scene.pauseRoot = root;
@@ -151,27 +153,29 @@ export function triggerGameOver(scene: GameScene): void {
 
   const w = scene.scale.width;
   const h = scene.scale.height;
-  const root = scene.add.container(0, 0).setScrollFactor(0).setDepth(5000);
+  const L = getCameraViewLayout(scene);
+  const zx = L.zoomX;
+  const zy = L.zoomY;
+  const root = scene.add.container(L.worldViewX, L.worldViewY).setDepth(5000);
 
-  const dim = scene.add.rectangle(w / 2, h / 2, w, h, 0x000011, 0.78).setScrollFactor(0);
+  const dim = scene.add.rectangle(w / (2 * zx), h / (2 * zy), w / zx, h / zy, 0x000011, 0.78);
   root.add(dim);
 
   const title = scene.add
-    .text(w / 2, h * 0.34, 'Fin de la partida', {
+    .text(w / (2 * zx), (h * 0.34) / zy, 'Fin de la partida', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '30px',
       color: '#f8fafc',
       align: 'center',
       fontStyle: '800',
     })
-    .setOrigin(0.5)
-    .setScrollFactor(0);
+    .setOrigin(0.5);
   root.add(title);
 
   const summary = scene.add
     .text(
-      w / 2,
-      h * 0.48,
+      w / (2 * zx),
+      (h * 0.48) / zy,
       `Supervivencia: ${formatSurvivalTime(scene.finalSurvivalMs)}\nBajas: ${scene.killCount}`,
       {
         fontFamily: 'system-ui, sans-serif',
@@ -181,12 +185,11 @@ export function triggerGameOver(scene: GameScene): void {
         fontStyle: '500',
       },
     )
-    .setOrigin(0.5)
-    .setScrollFactor(0);
+    .setOrigin(0.5);
   root.add(summary);
 
   const btn = scene.add
-    .text(w / 2, h * 0.64, 'Volver a intentar', {
+    .text(w / (2 * zx), (h * 0.64) / zy, 'Volver a intentar', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '18px',
       color: '#38bdf8',
@@ -195,7 +198,6 @@ export function triggerGameOver(scene: GameScene): void {
       padding: { x: 18, y: 10 },
     })
     .setOrigin(0.5)
-    .setScrollFactor(0)
     .setInteractive({ useHandCursor: true });
 
   btn.on('pointerover', () => btn.setStyle({ color: '#7dd3fc' }));

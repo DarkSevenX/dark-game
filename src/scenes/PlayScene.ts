@@ -9,7 +9,7 @@ import {
 } from '../game/constants';
 import { xpForLevel } from '../game/utils/xp';
 import { applyViewZoom, onGameResize } from '../game/play/camera';
-import { createPlayHud, updatePlayHud } from '../game/play/hud';
+import { createPlayHud, updatePlayHud, bindHudLayoutToCameraFollow } from '../game/play/hud';
 import { createWorldBackground, placeRocks, placeWorldOrbs } from '../game/play/world';
 import {
   scheduleNextSpawn as armSpawnTimer,
@@ -216,6 +216,7 @@ export class PlayScene extends Phaser.Scene implements GameScene {
     });
 
     createPlayHud(this);
+    bindHudLayoutToCameraFollow(this);
     armSpawnTimer(this);
     spawnEnemy(this);
   }
