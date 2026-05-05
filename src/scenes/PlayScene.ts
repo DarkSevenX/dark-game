@@ -34,6 +34,7 @@ import {
 import { collectOrbs } from '../game/play/xp';
 import { autoAttack, onEnemyTouchingPlayer } from '../game/play/combat';
 import { togglePause } from '../game/play/modals';
+import { readControlMode, type ControlMode } from '../game/controlMode';
 import type { GameScene, ArcadeRectBody } from '../game/gameSceneTypes';
 
 export class PlayScene extends Phaser.Scene implements GameScene {
@@ -85,11 +86,14 @@ export class PlayScene extends Phaser.Scene implements GameScene {
   hudXpFill!: Phaser.GameObjects.Rectangle;
   hudXpLabel!: Phaser.GameObjects.Text;
   hudLegendEntries!: GameScene['hudLegendEntries'];
+  controlMode!: ControlMode;
+
   constructor() {
     super({ key: 'PlayScene' });
   }
 
   create(): void {
+    this.controlMode = readControlMode(this);
     this.runStartedAt = this.time.now;
     this.gameOver = false;
     this.finalSurvivalMs = 0;
@@ -289,24 +293,43 @@ export class PlayScene extends Phaser.Scene implements GameScene {
 
     const body = this.player.body;
     const spd = this.stats.moveSpeed;
-    body.setVelocity(0);
 
-    const left = this.cursors.left.isDown || this.wasd.left.isDown;
-    const right = this.cursors.right.isDown || this.wasd.right.isDown;
-    const up = this.cursors.up.isDown || this.wasd.up.isDown;
-    const down = this.cursors.down.isDown || this.wasd.down.isDown;
+    if (this.controlMode === 'mouse') {
+      const pointer = this.input.activePointer;
+      if (pointer) {
+        const cam = this.cameras.main;
+        const target = cam.getWorldPoint(pointer.x, pointer.y);
+        const dx = target.x - this.player.x;
+        const dy = target.y - this.player.y;
+        const len = Math.hypot(dx, dy);
+        if (len > 8) {
+          body.setVelocity((dx / len) * spd, (dy / len) * spd);
+        } else {
+          body.setVelocity(0, 0);
+        }
+      } else {
+        body.setVelocity(0, 0);
+      }
+    } else {
+      body.setVelocity(0);
 
-    if (left) body.setVelocityX(-spd);
-    else if (right) body.setVelocityX(spd);
+      const left = this.cursors.left.isDown || this.wasd.left.isDown;
+      const right = this.cursors.right.isDown || this.wasd.right.isDown;
+      const up = this.cursors.up.isDown || this.wasd.up.isDown;
+      const down = this.cursors.down.isDown || this.wasd.down.isDown;
 
-    if (up) body.setVelocityY(-spd);
-    else if (down) body.setVelocityY(spd);
+      if (left) body.setVelocityX(-spd);
+      else if (right) body.setVelocityX(spd);
 
-    if (left && right) body.setVelocityX(0);
-    if (up && down) body.setVelocityY(0);
+      if (up) body.setVelocityY(-spd);
+      else if (down) body.setVelocityY(spd);
 
-    if (body.velocity.lengthSq() > 0) {
-      body.velocity.normalize().scale(spd);
+      if (left && right) body.setVelocityX(0);
+      if (up && down) body.setVelocityY(0);
+
+      if (body.velocity.lengthSq() > 0) {
+        body.velocity.normalize().scale(spd);
+      }
     }
 
     body.velocity.x += this.playerKnock.x;

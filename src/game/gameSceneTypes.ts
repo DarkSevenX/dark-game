@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { EnemyId } from './data/enemies';
+import type { ControlMode } from './controlMode';
 
 export interface PlayStats {
   hp: number;
@@ -117,6 +118,7 @@ export interface GameScene extends Phaser.Scene {
   hudXpFill: Phaser.GameObjects.Rectangle;
   hudXpLabel: Phaser.GameObjects.Text;
   hudLegendEntries: HudLegendRow[];
+  controlMode: ControlMode;
   syncPlayerMaxVelocity(): void;
   scheduleNextSpawn(): void;
   applyLightningWeaponUpgrade(): void;

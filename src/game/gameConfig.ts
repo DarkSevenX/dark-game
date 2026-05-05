@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { MenuScene } from '../scenes/MenuScene';
 import { PlayScene } from '../scenes/PlayScene';
 
 export function createGameConfig(): Phaser.Types.Core.GameConfig {
@@ -16,7 +17,7 @@ export function createGameConfig(): Phaser.Types.Core.GameConfig {
         debug: false,
       },
     },
-    scene: [PlayScene],
+    scene: [MenuScene, PlayScene],
     scale: {
       mode: Phaser.Scale.RESIZE,
       autoCenter: Phaser.Scale.NO_CENTER,

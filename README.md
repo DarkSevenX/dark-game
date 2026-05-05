@@ -1,6 +1,6 @@
 # DarkGame
 
-Prototipo de supervivencia en el navegador, inspirado en *Vampire Survivors*: mapa amplio con obstáculos, movimiento con teclado, **aura de daño automática**, varias **armas opcionales** (rayo, proyectiles, perforación, orbitales, nova), **orbes de XP** con distinta rareza, enemigos tipados con dificultad creciente y proyecto en **TypeScript**.
+Prototipo de supervivencia en el navegador, inspirado en *Vampire Survivors*: **menú inicial** (teclado o ratón), mapa amplio con obstáculos, movimiento con **flechas y WASD** o **seguimiento del cursor**, **aura de daño automática**, varias **armas opcionales** (rayo, proyectiles, perforación, orbitales, nova), **orbes de XP** con distinta rareza, **corazones** de curación, enemigos tipados con dificultad creciente y proyecto en **TypeScript**.
 
 ## Requisitos
 
@@ -25,10 +25,14 @@ Punto de entrada HTML: `index.html` carga `/src/main.ts`. El juego ocupa **panta
 
 ## Controles
 
+Al iniciar aparece un **menú**: elige **Teclado** o **Ratón** y pulsa **Jugar**. La elección se conserva al reiniciar la partida (**R** tras game over) mientras no recargues la página.
+
 | Acción | Entrada |
 |--------|---------|
-| Mover | Flechas o **W A S D** |
-| Pausa | **ESC** (reanudar con ESC o clic en el panel) |
+| Menú | Clic en tarjeta de control + **Jugar** |
+| Mover (modo teclado) | Flechas **y** **W A S D** a la vez (se combinan) |
+| Mover (modo ratón) | Cursor: el jugador se desplaza hacia la posición del puntero en el mapa (sin usar teclas para moverse) |
+| Pausa | **ESC** (modo teclado o ratón; reanudar con ESC o clic) |
 | Tras game over | **R** o botón *Volver a intentar* |
 
 ## Estructura del código
@@ -38,8 +42,10 @@ src/
   main.ts                    # Phaser.Game, resize / visualViewport
   vite-env.d.ts              # Tipos Vite
   scenes/
+    MenuScene.ts             # Menú inicial: control teclado/ratón y Jugar
     PlayScene.ts             # Orquestación: create/update, input, cámara
   game/
+    controlMode.ts           # Tipo de control y lectura desde registry
     gameSceneTypes.ts        # GameScene, stats, estados de armas, ArcadeRectBody
     constants.ts             # WORLD, COLORS, ORB_TIERS, balance, zoom
     gameConfig.ts            # Config Phaser y registro de escenas
