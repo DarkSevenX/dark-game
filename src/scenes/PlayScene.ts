@@ -10,7 +10,7 @@ import {
 import { xpForLevel } from '../game/utils/xp';
 import { applyViewZoom, onGameResize } from '../game/play/camera';
 import { createPlayHud, updatePlayHud, bindHudLayoutToCameraFollow } from '../game/play/hud';
-import { createWorldBackground, placeRocks, placeWorldOrbs } from '../game/play/world';
+import { createWorldBackground, placeRocks, placeWorldOrbs, placeWorldHearts } from '../game/play/world';
 import {
   scheduleNextSpawn as armSpawnTimer,
   spawnEnemy,
@@ -183,6 +183,7 @@ export class PlayScene extends Phaser.Scene implements GameScene {
 
     this.orbs = this.add.group();
     placeWorldOrbs(this, startX, startY);
+    placeWorldHearts(this, startX, startY);
 
     this.cursors = this.input.keyboard!.createCursorKeys();
     this.wasd = this.input.keyboard!.addKeys({

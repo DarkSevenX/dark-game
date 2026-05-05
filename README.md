@@ -73,7 +73,8 @@ src/
 ## Orbes y XP
 
 - **Mundo y bajas**: la XP del orbe depende de la categoría (poca / media / mucha) más un extra por nivel y el `xpBonus` del enemigo en drops.
-- **Recogida**: el jugador atrae orbes dentro de un radio (`BASE_PICKUP_RADIUS` en `constants.ts`; la mejora *Imán etéreo* aumenta ese radio).
+- **Corazones**: curan PV (cantidad en rango configurable); unos pocos salen repartidos por el mapa y a veces **sueltan los enemigos** al morir (baja probabilidad). Se recogen con el mismo radio que los orbes; si ya estás a **PV máximos**, el corazón no se consume y sigue en el suelo.
+- **Recogida**: el jugador atrae orbes y corazones dentro de un radio (`BASE_PICKUP_RADIUS` en `constants.ts`; la mejora *Imán etéreo* aumenta ese radio).
 - **Multiplicador**: la mejora *Hambre de conocimiento* afecta a la XP ganada por orbe.
 - **Siguiente nivel**: `xpForLevel(level)` en `src/game/utils/xp.ts`  
   `floor(32 + L×52 + L²×4.2 + 0.15×L³)` con `L = max(1, level)`.
@@ -120,7 +121,6 @@ En código se enlazan con `applyLightningWeaponUpgrade()`, `applyProjectileWeapo
 | Acechador | Base; equilibrado |
 | Corredor | Más rápido, menos daño al contacto |
 | Bruto | Más PV, más lento, más daño |
-| Turba | Muy rápido, pequeño |
 | Celador | Tanque, mucho PV, violeta |
 
 **Desbloqueo por tiempo** (`ENEMY_UNLOCK_SEC` en `enemies.ts`):
@@ -130,7 +130,6 @@ En código se enlazan con `applyLightningWeaponUpgrade()`, `applyProjectileWeapo
 | 0 | Acechador |
 | 45 | + Corredor |
 | 90 | + Bruto |
-| 180 | + Turba |
 | 300 | + Celador |
 
 La leyenda del HUD atenúa tipos aún no desbloqueados.

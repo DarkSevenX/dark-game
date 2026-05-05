@@ -1,5 +1,13 @@
 import Phaser from 'phaser';
-import { COLORS, ORB_TIERS, type OrbTier } from '../constants';
+import {
+  COLORS,
+  ORB_TIERS,
+  HEART_DROP_CHANCE,
+  HEART_HEAL_MIN,
+  HEART_HEAL_MAX,
+  HEART_RADIUS,
+  type OrbTier,
+} from '../constants';
 import { consumeLevel } from './levelFlow';
 import { openLevelUpMenu } from './modals';
 import type { GameScene, ArcadeRectBody } from '../gameSceneTypes';
@@ -65,6 +73,14 @@ export function spawnXpOrb(
   scene.orbs.add(orb);
 }
 
+export function spawnHeartPickup(scene: GameScene, x: number, y: number): void {
+  const heal = Phaser.Math.Between(HEART_HEAL_MIN, HEART_HEAL_MAX);
+  const heart = scene.add.circle(x, y, HEART_RADIUS, COLORS.heartFill, 0.92);
+  heart.setStrokeStyle(2, COLORS.heartStroke, 0.58);
+  heart.setData('heartHeal', heal);
+  scene.orbs.add(heart);
+}
+
 export function collectOrbs(scene: GameScene): void {
   const px = scene.player.x;
   const py = scene.player.y;
@@ -73,12 +89,21 @@ export function collectOrbs(scene: GameScene): void {
   for (const orb of scene.orbs.getChildren()) {
     const o = orb as Phaser.GameObjects.Arc;
     if (!o.active) continue;
-    if (Phaser.Math.Distance.Between(px, py, o.x, o.y) <= r) {
-      const raw = (o.getData('xpValue') as number | undefined) ?? 3;
-      const gained = Math.max(1, Math.round(raw * scene.stats.xpGainMult));
-      gainXp(scene, gained);
-      o.destroy();
+    if (Phaser.Math.Distance.Between(px, py, o.x, o.y) > r) continue;
+
+    const heartHeal = o.getData('heartHeal') as number | undefined;
+    if (heartHeal !== undefined && heartHeal > 0) {
+      if (!scene.gameOver && scene.stats.hp < scene.stats.maxHp) {
+        scene.stats.hp = Math.min(scene.stats.maxHp, scene.stats.hp + heartHeal);
+        o.destroy();
+      }
+      continue;
     }
+
+    const raw = (o.getData('xpValue') as number | undefined) ?? 3;
+    const gained = Math.max(1, Math.round(raw * scene.stats.xpGainMult));
+    gainXp(scene, gained);
+    o.destroy();
   }
 }
 
@@ -100,4 +125,8 @@ export function killEnemyWithLoot(scene: GameScene, enemy: ArcadeRectBody): void
     variance: true,
     bonusFlat: bonus + levelExtra,
   });
+  if (Math.random() < HEART_DROP_CHANCE) {
+    const j = 26;
+    spawnHeartPickup(scene, ox + Phaser.Math.Between(-j, j), oy + Phaser.Math.Between(-j, j));
+  }
 }

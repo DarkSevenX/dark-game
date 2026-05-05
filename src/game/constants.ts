@@ -18,6 +18,8 @@ export const COLORS = {
   hpBarBg: 0x475569,
   xpBarFill: 0xa855f7,
   xpBarBg: 0x475569,
+  heartFill: 0xf43f5e,
+  heartStroke: 0x9f1239,
 } as const;
 
 /** XP y aspecto de orbes por categoría (mundo y loot). */
@@ -64,6 +66,16 @@ export const MAX_ENEMIES_ALIVE = 160;
 export const WORLD_ORB_COUNT = 240;
 export const WORLD_ORB_MIN_FROM_PLAYER = 240;
 export const WORLD_ORB_MIN_SPACING = 38;
+
+/** Corazones en el mapa (pocos) y botín; curación acotada al máx. de PV actuales. */
+export const WORLD_HEART_COUNT = 12;
+export const WORLD_HEART_MIN_FROM_PLAYER = 320;
+export const WORLD_HEART_MIN_SPACING = 52;
+/** Probabilidad por enemigo muerto de soltar un corazón además del orbe de XP. */
+export const HEART_DROP_CHANCE = 0.034;
+export const HEART_HEAL_MIN = 14;
+export const HEART_HEAL_MAX = 26;
+export const HEART_RADIUS = 8;
 
 /** Encuadre de referencia para zoom de cámara. */
 export const VIEW_REF = { W: 960, H: 540 } as const;

@@ -7,8 +7,11 @@ import {
   WORLD_ORB_COUNT,
   WORLD_ORB_MIN_FROM_PLAYER,
   WORLD_ORB_MIN_SPACING,
+  WORLD_HEART_COUNT,
+  WORLD_HEART_MIN_FROM_PLAYER,
+  WORLD_HEART_MIN_SPACING,
 } from '../constants';
-import { spawnXpOrb, pickRandomOrbTier } from './xp';
+import { spawnXpOrb, spawnHeartPickup, pickRandomOrbTier } from './xp';
 import type { GameScene } from '../gameSceneTypes';
 
 export function createWorldBackground(scene: GameScene): void {
@@ -90,6 +93,55 @@ export function placeWorldOrbs(scene: GameScene, avoidX: number, avoidY: number)
 
     positions.push({ x, y });
     spawnXpOrb(scene, x, y, 0, { worldPickup: true, tier: pickRandomOrbTier(), variance: true });
+    placed += 1;
+  }
+}
+
+export function placeWorldHearts(scene: GameScene, avoidX: number, avoidY: number): void {
+  const positions: { x: number; y: number }[] = [];
+  let placed = 0;
+  let guard = 0;
+
+  const minDistToAnyPickup = (x: number, y: number): number => {
+    let min = Infinity;
+    for (const child of scene.orbs.getChildren()) {
+      const go = child as Phaser.GameObjects.Arc;
+      if (!go.active) continue;
+      const d = Phaser.Math.Distance.Between(x, y, go.x, go.y);
+      if (d < min) min = d;
+    }
+    return min;
+  };
+
+  while (placed < WORLD_HEART_COUNT && guard < WORLD_HEART_COUNT * 200) {
+    guard += 1;
+    const x = Phaser.Math.Between(50, WORLD.W - 50);
+    const y = Phaser.Math.Between(50, WORLD.H - 50);
+
+    if (Phaser.Math.Distance.Between(x, y, avoidX, avoidY) < WORLD_HEART_MIN_FROM_PLAYER) continue;
+
+    let ok = true;
+    for (const rock of scene.rocks.getChildren()) {
+      const rg = rock as Phaser.GameObjects.Rectangle;
+      if (Phaser.Math.Distance.Between(x, y, rg.x, rg.y) < ROCK_SIZE * 0.65 + 14) {
+        ok = false;
+        break;
+      }
+    }
+    if (!ok) continue;
+
+    if (minDistToAnyPickup(x, y) < WORLD_HEART_MIN_SPACING) continue;
+
+    for (const p of positions) {
+      if (Phaser.Math.Distance.Between(x, y, p.x, p.y) < WORLD_HEART_MIN_SPACING) {
+        ok = false;
+        break;
+      }
+    }
+    if (!ok) continue;
+
+    positions.push({ x, y });
+    spawnHeartPickup(scene, x, y);
     placed += 1;
   }
 }

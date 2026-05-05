@@ -40,19 +40,6 @@ export const ENEMY_DEFS = {
     stroke: 0x3d0808,
     xpBonus: 4,
   },
-  swarm: {
-    id: 'swarm',
-    label: 'Turba',
-    size: 22,
-    maxHp: 1,
-    speedMult: 1.52,
-    contactDamage: 7,
-    auraKnockMult: 1.35,
-    playerKnockMult: 0.55,
-    color: 0xd4af37,
-    stroke: 0x8b6914,
-    xpBonus: 2,
-  },
   warden: {
     id: 'warden',
     label: 'Celador',
@@ -74,7 +61,6 @@ export type EnemyId = keyof typeof ENEMY_DEFS;
 export const ENEMY_UNLOCK_SEC = {
   runner: 45,
   brute: 90,
-  swarm: 180,
   warden: 300,
 } as const;
 
@@ -82,6 +68,5 @@ export const ENEMY_LEGEND_ORDER: readonly EnemyId[] = [
   'stalker',
   'runner',
   'brute',
-  'swarm',
   'warden',
 ];
