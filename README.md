@@ -53,7 +53,7 @@ src/
     play/
       camera.ts              # Zoom y límites al redimensionar
       hud.ts                 # Barras, leyenda de enemigos
-      world.ts               # Fondo, cuadrícula, rocas, orbes iniciales
+      world.ts               # Fondo, cuadrícula, rocas, orbes y corazones iniciales
       spawn.ts               # Oleadas y spawnEnemy
       combat.ts              # Aura, contacto, knockback del jugador
       weapons.ts             # Rayo, proyectiles, perforación, orbitales, nova
