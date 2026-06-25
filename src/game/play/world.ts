@@ -15,18 +15,36 @@ import { spawnXpOrb, spawnHeartPickup, pickRandomOrbTier } from './xp';
 import type { GameScene } from '../gameSceneTypes';
 
 export function createWorldBackground(scene: GameScene): void {
-  scene.add.rectangle(WORLD.W / 2, WORLD.H / 2, WORLD.W, WORLD.H, COLORS.bg);
+  const bg = scene.add.rectangle(WORLD.W / 2, WORLD.H / 2, WORLD.W, WORLD.H, COLORS.bg);
+  bg.setDepth(-10); // Ensure background is behind everything
 
-  const grid = scene.add.graphics();
-  grid.lineStyle(1, COLORS.grid, 0.55);
-  const step = 48;
-  for (let x = 0; x <= WORLD.W; x += step) {
-    grid.lineBetween(x, 0, x, WORLD.H);
+  const map = scene.make.tilemap({ key: 'mapa' });
+  const tilesetSuelo = map.addTilesetImage('suelo', 'suelo');
+  const tilesetProps = map.addTilesetImage('props', 'props');
+  const tilesetArboles = map.addTilesetImage('arboles', 'arboles');
+
+  // Filter out any tilesets that failed to load to prevent crashes
+  const tilesets: any[] = [tilesetSuelo, tilesetProps, tilesetArboles].filter(Boolean);
+
+  const capa1 = map.createLayer('Capa de patrones 1', tilesets, 0, 0);
+  const capa2 = map.createLayer('arboles', tilesets, 0, 0);
+  
+  if (capa1) capa1.setDepth(-2);
+  if (capa2) capa2.setDepth(-1);
+
+  const objectLayer = map.getObjectLayer('Capa de Objetos 1');
+  if (objectLayer && objectLayer.objects) {
+    objectLayer.objects.forEach(obj => {
+      const w = obj.width || 32;
+      const h = obj.height || 32;
+      const cx = (obj.x || 0) + w / 2;
+      const cy = (obj.y || 0) + h / 2;
+      
+      const rect = scene.add.rectangle(cx, cy, w, h); // No color = invisible
+      scene.physics.add.existing(rect, true); // true = static body
+      scene.rocks.add(rect);
+    });
   }
-  for (let y = 0; y <= WORLD.H; y += step) {
-    grid.lineBetween(0, y, WORLD.W, y);
-  }
-  grid.setDepth(-2);
 }
 
 export function placeRocks(scene: GameScene, avoidX: number, avoidY: number): void {

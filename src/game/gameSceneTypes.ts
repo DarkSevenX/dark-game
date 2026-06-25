@@ -105,6 +105,12 @@ export interface GameScene extends Phaser.Scene {
   };
   keyRestart: Phaser.Input.Keyboard.Key;
   keyEsc: Phaser.Input.Keyboard.Key;
+  keyAttack: Phaser.Input.Keyboard.Key;
+  keyDash: Phaser.Input.Keyboard.Key;
+  isDashing: boolean;
+  dashUntil: number;
+  dashCooldownUntil: number;
+  dashDir: { x: number; y: number };
   attackGfx: Phaser.GameObjects.Graphics;
   lightningGfx: Phaser.GameObjects.Graphics;
   novaGfx: Phaser.GameObjects.Graphics;

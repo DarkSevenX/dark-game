@@ -1,8 +1,8 @@
 /** Mundo lógico y ajustes de gameplay (un solo sitio para tunear). */
 
 export const WORLD = {
-  W: 6400,
-  H: 4800,
+  W: 1280,
+  H: 1280,
 } as const;
 
 export const COLORS = {
@@ -52,23 +52,23 @@ export const ORB_TIERS = {
 
 export type OrbTier = keyof typeof ORB_TIERS;
 
-export const ROCK_COUNT = 120;
+export const ROCK_COUNT = 20;
 export const ROCK_SIZE = 52;
-export const ENEMY_SPEED_BASE = 95;
-export const BASE_SPAWN_SEC = 1.75;
+export const ENEMY_SPEED_BASE = 70;
+export const BASE_SPAWN_SEC = 2.5;
 export const BASE_ATTACK_RANGE = 110;
-export const BASE_ATTACK_COOLDOWN_MS = 520;
+export const BASE_ATTACK_COOLDOWN_MS = 300;
 export const BASE_PICKUP_RADIUS = 52;
-export const BASE_ENEMY_CONTACT_DAMAGE = 13;
+export const BASE_ENEMY_CONTACT_DAMAGE = 5;
 export const CONTACT_DAMAGE_INTERVAL_MS = 620;
 export const INVULN_AFTER_HIT_MS = 520;
-export const MAX_ENEMIES_ALIVE = 160;
-export const WORLD_ORB_COUNT = 240;
+export const MAX_ENEMIES_ALIVE = 100;
+export const WORLD_ORB_COUNT = 40;
 export const WORLD_ORB_MIN_FROM_PLAYER = 240;
 export const WORLD_ORB_MIN_SPACING = 38;
 
 /** Corazones en el mapa (pocos) y botín; curación acotada al máx. de PV actuales. */
-export const WORLD_HEART_COUNT = 12;
+export const WORLD_HEART_COUNT = 3;
 export const WORLD_HEART_MIN_FROM_PLAYER = 320;
 export const WORLD_HEART_MIN_SPACING = 52;
 /** Probabilidad por enemigo muerto de soltar un corazón además del orbe de XP. */

@@ -32,7 +32,7 @@ import {
   applyNovaWeaponUpgrade as applyNovaToScene,
 } from '../game/play/weapons';
 import { collectOrbs } from '../game/play/xp';
-import { autoAttack, onEnemyTouchingPlayer } from '../game/play/combat';
+import { performAttack, onEnemyTouchingPlayer } from '../game/play/combat';
 import { togglePause } from '../game/play/modals';
 import { readControlMode, type ControlMode } from '../game/controlMode';
 import type { GameScene, ArcadeRectBody } from '../game/gameSceneTypes';
@@ -73,6 +73,12 @@ export class PlayScene extends Phaser.Scene implements GameScene {
   wasd!: GameScene['wasd'];
   keyRestart!: Phaser.Input.Keyboard.Key;
   keyEsc!: Phaser.Input.Keyboard.Key;
+  keyAttack!: Phaser.Input.Keyboard.Key;
+  keyDash!: Phaser.Input.Keyboard.Key;
+  isDashing!: boolean;
+  dashUntil!: number;
+  dashCooldownUntil!: number;
+  dashDir!: { x: number; y: number };
   attackGfx!: Phaser.GameObjects.Graphics;
   lightningGfx!: Phaser.GameObjects.Graphics;
   novaGfx!: Phaser.GameObjects.Graphics;
@@ -90,6 +96,13 @@ export class PlayScene extends Phaser.Scene implements GameScene {
 
   constructor() {
     super({ key: 'PlayScene' });
+  }
+
+  preload(): void {
+    this.load.image('suelo', 'assets/suelo.png');
+    this.load.image('props', 'assets/props.png');
+    this.load.image('arboles', 'assets/arboles.png');
+    this.load.tilemapTiledJSON('mapa', 'assets/mapa.json');
   }
 
   create(): void {
@@ -136,13 +149,13 @@ export class PlayScene extends Phaser.Scene implements GameScene {
 
     this.physics.world.setBounds(0, 0, WORLD.W, WORLD.H);
 
-    createWorldBackground(this);
-
     this.rocks = this.physics.add.staticGroup();
+
+    createWorldBackground(this);
 
     const startX = WORLD.W / 2;
     const startY = WORLD.H / 2;
-    placeRocks(this, startX, startY);
+    // placeRocks(this, startX, startY);
 
     const boxSize = 36;
     const rect = this.add.rectangle(startX, startY, boxSize, boxSize, COLORS.player) as ArcadeRectBody;
@@ -198,6 +211,13 @@ export class PlayScene extends Phaser.Scene implements GameScene {
     }) as GameScene['wasd'];
     this.keyRestart = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.R);
     this.keyEsc = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+    this.keyAttack = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.J);
+    this.keyDash = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    
+    this.isDashing = false;
+    this.dashUntil = 0;
+    this.dashCooldownUntil = 0;
+    this.dashDir = { x: 0, y: 0 };
 
     this.attackGfx = this.add.graphics();
     this.attackGfx.setDepth(5);
@@ -222,8 +242,8 @@ export class PlayScene extends Phaser.Scene implements GameScene {
 
     createPlayHud(this);
     bindHudLayoutToCameraFollow(this);
-    armSpawnTimer(this);
-    spawnEnemy(this);
+    //armSpawnTimer(this);
+    //spawnEnemy(this);
   }
 
   private _onGameResize = (gameSize: Phaser.Structs.Size): void => {
@@ -282,7 +302,12 @@ export class PlayScene extends Phaser.Scene implements GameScene {
       togglePause(this);
     }
 
-    autoAttack(this, time);
+    const isAttacking =
+      this.keyAttack.isDown ||
+      (this.controlMode === 'mouse' && this.input.activePointer.isDown);
+    if (isAttacking) {
+      performAttack(this, time);
+    }
     tickLightningWeapon(this, time);
     tickProjectileWeapon(this, time);
     tickPierceWeapon(this, time);
@@ -294,41 +319,89 @@ export class PlayScene extends Phaser.Scene implements GameScene {
     const body = this.player.body;
     const spd = this.stats.moveSpeed;
 
-    if (this.controlMode === 'mouse') {
-      const pointer = this.input.activePointer;
-      if (pointer) {
-        const cam = this.cameras.main;
-        const target = cam.getWorldPoint(pointer.x, pointer.y);
-        const dx = target.x - this.player.x;
-        const dy = target.y - this.player.y;
-        const len = Math.hypot(dx, dy);
-        if (len > 8) {
-          body.setVelocity((dx / len) * spd, (dy / len) * spd);
+    if (Phaser.Input.Keyboard.JustDown(this.keyDash) && time > this.dashCooldownUntil) {
+      let vx = 0;
+      let vy = 0;
+      
+      if (this.controlMode === 'mouse') {
+        const pointer = this.input.activePointer;
+        if (pointer) {
+          const cam = this.cameras.main;
+          const target = cam.getWorldPoint(pointer.x, pointer.y);
+          vx = target.x - this.player.x;
+          vy = target.y - this.player.y;
+        }
+      } else {
+        const left = this.cursors.left.isDown || this.wasd.left.isDown;
+        const right = this.cursors.right.isDown || this.wasd.right.isDown;
+        const up = this.cursors.up.isDown || this.wasd.up.isDown;
+        const down = this.cursors.down.isDown || this.wasd.down.isDown;
+        if (left) vx -= 1;
+        if (right) vx += 1;
+        if (up) vy -= 1;
+        if (down) vy += 1;
+      }
+      
+      if (vx === 0 && vy === 0) {
+        vx = 1; // default dash right if not pressing anything
+      }
+      
+      const len = Math.hypot(vx, vy);
+      this.dashDir = { x: vx / len, y: vy / len };
+      this.isDashing = true;
+      this.dashUntil = time + 150; // 150ms dash
+      this.dashCooldownUntil = time + 800; // 800ms cooldown
+      this.player.body.setMaxVelocity(10000, 10000); // disable cap during dash
+    }
+
+    if (this.isDashing) {
+      if (time > this.dashUntil) {
+        this.isDashing = false;
+        this.syncPlayerMaxVelocity(); // restore cap
+      } else {
+        body.setVelocity(this.dashDir.x * spd * 3.5, this.dashDir.y * spd * 3.5);
+      }
+    }
+
+    if (!this.isDashing) {
+      if (this.controlMode === 'mouse') {
+        const pointer = this.input.activePointer;
+        if (pointer) {
+          const cam = this.cameras.main;
+          const target = cam.getWorldPoint(pointer.x, pointer.y);
+          const dx = target.x - this.player.x;
+          const dy = target.y - this.player.y;
+          const len = Math.hypot(dx, dy);
+          if (len > 8) {
+            body.setVelocity((dx / len) * spd, (dy / len) * spd);
+            this.player.setData('lastFacingAngle', Math.atan2(dy, dx));
+          } else {
+            body.setVelocity(0, 0);
+          }
         } else {
           body.setVelocity(0, 0);
         }
       } else {
-        body.setVelocity(0, 0);
-      }
-    } else {
-      body.setVelocity(0);
+        body.setVelocity(0);
 
-      const left = this.cursors.left.isDown || this.wasd.left.isDown;
-      const right = this.cursors.right.isDown || this.wasd.right.isDown;
-      const up = this.cursors.up.isDown || this.wasd.up.isDown;
-      const down = this.cursors.down.isDown || this.wasd.down.isDown;
+        const left = this.cursors.left.isDown || this.wasd.left.isDown;
+        const right = this.cursors.right.isDown || this.wasd.right.isDown;
+        const up = this.cursors.up.isDown || this.wasd.up.isDown;
+        const down = this.cursors.down.isDown || this.wasd.down.isDown;
 
-      if (left) body.setVelocityX(-spd);
-      else if (right) body.setVelocityX(spd);
+        if (left) body.setVelocityX(-spd);
+        else if (right) body.setVelocityX(spd);
 
-      if (up) body.setVelocityY(-spd);
-      else if (down) body.setVelocityY(spd);
+        if (up) body.setVelocityY(-spd);
+        else if (down) body.setVelocityY(spd);
 
-      if (left && right) body.setVelocityX(0);
-      if (up && down) body.setVelocityY(0);
+        if (left && right) body.setVelocityX(0);
+        if (up && down) body.setVelocityY(0);
 
-      if (body.velocity.lengthSq() > 0) {
-        body.velocity.normalize().scale(spd);
+        if (body.velocity.lengthSq() > 0) {
+          body.velocity.normalize().scale(spd);
+          this.player.setData('lastFacingAngle', Math.atan2(body.velocity.y, body.velocity.x));
+        }
       }
     }
 

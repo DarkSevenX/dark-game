@@ -54,20 +54,45 @@ export function onEnemyTouchingPlayer(scene: GameScene, enemy: ArcadeRectBody): 
   }
 }
 
-export function autoAttack(scene: GameScene, time: number): void {
+export function performAttack(scene: GameScene, time: number): void {
   if (scene.gameOver || scene.pausedForLevelUp || scene.pausedGame) return;
   if (time < scene.nextAttackAt) return;
 
   scene.nextAttackAt = time + scene.stats.attackCooldownMs;
 
-  const r = scene.stats.attackRange;
-  scene.attackGfx.clear();
-  scene.attackGfx.lineStyle(3, COLORS.attackFlash, 0.85);
-  scene.attackGfx.strokeCircle(scene.player.x, scene.player.y, r);
-  scene.time.delayedCall(110, () => scene.attackGfx.clear());
-
   const px = scene.player.x;
   const py = scene.player.y;
+  const r = scene.stats.attackRange;
+
+  // A dash attack triggers if we attack during a dash or within 200ms after it ends.
+  const isDashAttack = time <= scene.dashUntil + 200;
+
+  let attackAngle = scene.player.getData('lastFacingAngle') as number ?? 0;
+  if (scene.controlMode === 'mouse' && !isDashAttack) {
+    const pointer = scene.input.activePointer;
+    if (pointer) {
+      const cam = scene.cameras.main;
+      const target = cam.getWorldPoint(pointer.x, pointer.y);
+      attackAngle = Phaser.Math.Angle.Between(px, py, target.x, target.y);
+      scene.player.setData('lastFacingAngle', attackAngle);
+    }
+  }
+
+  scene.attackGfx.clear();
+  scene.attackGfx.lineStyle(3, COLORS.attackFlash, 0.85);
+  
+  if (isDashAttack) {
+    scene.attackGfx.strokeCircle(px, py, r);
+  } else {
+    scene.attackGfx.beginPath();
+    scene.attackGfx.arc(px, py, r, attackAngle - Math.PI / 2, attackAngle + Math.PI / 2, false);
+    scene.attackGfx.lineTo(px, py);
+    scene.attackGfx.closePath();
+    scene.attackGfx.strokePath();
+  }
+  
+  scene.time.delayedCall(110, () => scene.attackGfx.clear());
+
   const dmg = scene.stats.auraDamage;
 
   const children = scene.enemies.getChildren() as ArcadeRectBody[];
@@ -75,8 +100,14 @@ export function autoAttack(scene: GameScene, time: number): void {
     if (!enemy.body || !enemy.active) continue;
     if (Phaser.Math.Distance.Between(px, py, enemy.x, enemy.y) > r) continue;
 
-    const km = (enemy.getData('auraKnockMult') as number | undefined) ?? 1;
     const ang = Phaser.Math.Angle.Between(px, py, enemy.x, enemy.y);
+    
+    if (!isDashAttack) {
+      const angleDiff = Phaser.Math.Angle.ShortestBetween(Phaser.Math.RadToDeg(attackAngle), Phaser.Math.RadToDeg(ang));
+      if (Math.abs(angleDiff) > 90) continue;
+    }
+
+    const km = (enemy.getData('auraKnockMult') as number | undefined) ?? 1;
     const kf = 240 * km;
     const kx = ((enemy.getData('kbX') as number | undefined) || 0) + Math.cos(ang) * kf;
     const ky = ((enemy.getData('kbY') as number | undefined) || 0) + Math.sin(ang) * kf;
